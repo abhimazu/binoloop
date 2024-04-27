@@ -1,0 +1,16 @@
+version: '3.8' 
+
+services:
+  modelserver:
+    image: modelserver 
+    build:
+      context: . 
+      dockerfile: Dockerfile  
+    ports:
+      - "8000:8000"  
+    volumes:
+      - ./logs:/app/logs 
+    environment:
+      - MODEL_NAME=microsoft/phi-2 
+      - NUM_WORKERS=1 
+    restart: unless-stopped  
