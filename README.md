@@ -10,6 +10,6 @@ There are three branches in this repository:
 
 1. **main** - Contains a FastAPI server hosting the LLM, that can handle concurrent requests from a client, to evaluate essays by parsing them from a csv dataset. (Tested)
 2. **[cicd_github_actions](https://github.com/abhimazu/binoloop/tree/cicd_github_actions)** - Contains a CI/CD GitHub actions implementation for automated testing and Docker registry upload of the server image from the main branch. (Few Bugs)
-3. **[trition_server](https://github.com/abhimazu/binoloop/tree/trition_server)** - Contains a Trition server based implementation that can accomodate both models with optimized dynamic batching which is capable of serving lots of usersand concurrent requests. (UnTested - Lack of resources)
+3. **[trition_server](https://github.com/abhimazu/binoloop/tree/trition_server)** - Contains a Trition server based implementation that can accomodate both models with optimized dynamic batching which is capable of serving lots of users and concurrent requests. (Untested - Lack of resources)
 
 Report back any improvements that you can suggest! Cheers!
