@@ -61,5 +61,5 @@ jobs:
 
       - name: Push Docker image to registry
         run: |
-          docker tag fastapi-server $DOCKER_REGISTRY_URL/fastapi-server:latest
-          docker push abhimazu/fastapi-server:latest
+          docker tag fastapi-server ${{ secrets.DOCKER_REGISTRY_URL }}/fastapi-server:latest
+          docker push ${{ secrets.DOCKER_REGISTRY_URL }}/fastapi-server:latest
