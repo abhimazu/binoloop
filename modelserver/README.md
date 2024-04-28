@@ -79,6 +79,6 @@ services:
 
 Run the docker-compose file to build and deploy your Trition Server:
 
-'''
+```
 docker-compose up
-'''
+```
