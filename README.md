@@ -120,3 +120,17 @@ Automated tests are run separately for both the server and client using pytest t
         run: |
           docker run -d -p 8000:8000 fastapi-server
 ```
+- **Uploads to Docker Registry**: Logs in to the configured Dockerhub account and uploads the successfully tested image to the registry with the **:latest** tag
+- 
+```
+- name: Docker login
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+- name: Push Docker image to registry
+  run: |
+    docker tag fastapi-server ${{ secrets.DOCKER_REGISTRY_URL }}/fastapi-server:latest
+    docker push ${{ secrets.DOCKER_REGISTRY_URL }}/fastapi-server:latest
+```
