@@ -92,14 +92,14 @@ Automated tests are run separately for both the server and client using pytest t
 
 ```
 - name: Run tests in Server
-        run: |
-          cd server
-          pytest
+  run: |
+    cd server
+    pytest
 
-      - name: Run tests in Client
-        run: |
-          cd client
-          pytest
+- name: Run tests in Client
+  run: |
+    cd client
+    pytest
   ```
 
 2. ### Docker Build for Server
@@ -108,26 +108,26 @@ Automated tests are run separately for both the server and client using pytest t
 - **Process**: Builds a Docker image from the Dockerfile located in the server directory. This ensures that the server can be containerized consistently with every change.
 
 ```
-      - name: Build Docker Image for Server
-        run: |
-          if [ -d "server/" ]; then
-            cd server
-            docker build -t fastapi-server .
-          fi
-      
-      - name: Run Docker Container
-        if: ${{ github.workspace }}/server
-        run: |
-          docker run -d -p 8000:8000 fastapi-server
+- name: Build Docker Image for Server
+  run: |
+    if [ -d "server/" ]; then
+      cd server
+      docker build -t fastapi-server .
+    fi
+
+- name: Run Docker Container
+  if: ${{ github.workspace }}/server
+  run: |
+    docker run -d -p 8000:8000 fastapi-server
 ```
 - **Uploads to Docker Registry**: Logs in to the configured Dockerhub account and uploads the successfully tested image to the registry with the **:latest** tag
 - 
 ```
 - name: Docker login
-        uses: docker/login-action@v1
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+  uses: docker/login-action@v1
+  with:
+    username: ${{ secrets.DOCKER_USERNAME }}
+    password: ${{ secrets.DOCKER_PASSWORD }}
 
 - name: Push Docker image to registry
   run: |
