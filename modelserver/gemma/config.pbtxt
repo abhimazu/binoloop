@@ -1,0 +1,44 @@
+name: "gemma"
+backend: "python"
+max_batch_size: 10 
+
+parameters: {
+  key: "huggingface_model",
+  value: {string_value: "google/gemma-7b"}
+}
+
+input [
+  {
+    name: "input_text"
+    data_type: TYPE_STRING
+    dims: [1]
+  }
+]
+output [
+  {
+    name: "output_text"
+    data_type: TYPE_STRING
+    dims: [1]
+  }
+]
+
+dynamic_batching {
+  preferred_batch_size: [1, 2, 4, 8]
+  max_queue_delay_microseconds: 100
+}
+
+# Uncomment this and comment the CPU part when GPU is used
+#instance_group [
+#  {
+#    count: 2
+#    kind: KIND_GPU
+#    gpus: [ 0, 1, 2, 3]
+#  }
+#]
+
+instance_group [
+  {
+    count: 2
+    kind: KIND_CPU
+  }
+]
