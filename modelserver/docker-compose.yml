@@ -1,0 +1,16 @@
+version: '3.8'  
+services:
+  tritonserver:
+    build: 
+      context: .  
+      dockerfile: Dockerfile  
+    ports:
+      - "8000:8000"  # Port mapping for HTTP requests
+      - "8001:8001"  # Port mapping for gRPC requests
+      - "8002:8002"  # Port mapping for metrics
+    volumes:
+      - type: bind
+        source: ./models
+        target: /models
+
+    restart: unless-stopped  
