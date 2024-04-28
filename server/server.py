@@ -1,68 +1,17 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline, BitsAndBytesConfig
-from langchain_community.llms import HuggingFacePipeline
-from langchain_core.prompts.prompt import PromptTemplate
-from langchain.chains.llm import LLMChain
-import torch
-import os
-import logging
+import httpx
+import json
 
 app = FastAPI()
 
-if not os.path.exists('logs'):
-    os.makedirs('logs')
-    print("Logs directory created successfully!")
-
-logging.basicConfig(level=logging.INFO, filename='logs/server.log', filemode='a',
-                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-
-logger = logging.getLogger(__name__)
-
-model_name = os.getenv("MODEL_NAME", "microsoft/phi-2")
-logger.info(f"Using model: {model_name}")
-
-prompt_dict = {
-    0: "Write an explanatory essay to inform fellow citizens about the advantages of limiting car usage. Your essay must be based on ideas and information that can be found in the passage set. Manage your time carefully so that you can read the passages",
-    1: "Write a letter to your state senator in which you argue in favor of keeping the Electoral College or changing to election by popular vote for the president of the United States. Use the information from the texts in your essay. Manage your time carefully so that you can read the passages"
-}
-
-tokenizer = AutoTokenizer.from_pretrained(model_name)
-
-model = AutoModelForCausalLM.from_pretrained(
-    model_name,
-    device_map='auto',
-    torch_dtype=torch.bfloat16
-)
-
-pipe = pipeline(
-    "text-generation",
-    model=model,
-    tokenizer=tokenizer,
-    max_length=1024,
-    temperature=0.4
-)
-
-pipe.model.config.pad_token_id = pipe.model.config.eos_token_id
-
-local_llm = HuggingFacePipeline(pipeline=pipe)
-
-template = """You a response evaluator. You are tasked with generating criticisms for the relevance of an essay or letter written below as per the question asked:
-### Question:
-{prompt}
-
-### Answer:
-{instruction}
-
-Evaluation:"""
-
-prompt = PromptTemplate(template=template, input_variables=["prompt", "instruction"])
-llm_chain = LLMChain(prompt=prompt, llm=local_llm)
+model_server_address = "http://localhost:8000"
 
 class EssayEvaluationRequest(BaseModel):
     prompt_id: int
-    essay_output: str
+    model_raw_output: str
     student_id: str
+    model_name: str 
 
 class EssayEvaluationResponse(BaseModel):
     criticism: str
@@ -72,18 +21,46 @@ class EssayEvaluationResponse(BaseModel):
 @app.post("/evaluate", response_model=EssayEvaluationResponse)
 async def evaluate_essay(request: EssayEvaluationRequest):
     try:
-        logger.info(f"Received request for prompt_id={request.prompt_id}, student_id={request.student_id}")
+        input_text = f"Generate criticism for essay based on a user prompt: {request.model_raw_output}"
+        
+        if request.model_name not in ["phi-2", "gemma"]:
+            raise HTTPException(status_code=400, detail="Unsupported model name")
 
+        model_server_path = f"/v2/models/{request.model_name}/versions/1/infer"
 
-        input_dict = {
-            "prompt": prompt_dict[request.prompt_id],  
-            "instruction": request.essay_output  
+        triton_request = {
+            "inputs": [{
+                "name": "input_text",
+                "shape": [1, len(input_text)],
+                "datatype": "STRING",
+                "data": [input_text]
+            }],
+            "outputs": [{
+                "name": "output_text"
+            }]
         }
-        result = llm_chain.invoke(input_dict)  
-        logger.info("Successfully generated a response: ", result)
-        return EssayEvaluationResponse(criticism=result, student_id=request.student_id, prompt_id=request.prompt_id)
+
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                model_server_address + model_server_path,
+                data=json.dumps(triton_request)
+            )
+        
+        response.raise_for_status()  
+
+        output_text = response.json().get("outputs", [{}])[0].get("data", ["No response"])[0]
+
+        return EssayEvaluationResponse(
+            criticism=output_text,
+            student_id=request.student_id,
+            prompt_id=request.prompt_id
+        )
+
+    except httpx.HTTPStatusError as exc:
+        raise HTTPException(status_code=exc.response.status_code, detail=str(exc))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 if __name__ == "__main__":
     import uvicorn
