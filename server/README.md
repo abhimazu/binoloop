@@ -58,6 +58,75 @@ If you prefer to run the application locally without Docker, ensure you set up a
 chmod +x script_run.sh
 ./script_run.sh
 ```
+## How it works
+
+### Huggingface pipeline definition
+
+A huggingface transformers based pipeline is defined for the model with hyperparams:
+
+```
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+
+model = AutoModelForCausalLM.from_pretrained(
+    model_name,
+    device_map='auto',
+    torch_dtype=torch.bfloat16
+)
+
+pipe = pipeline(
+    "text-generation",
+    model=model,
+    tokenizer=tokenizer,
+    max_length=1024,
+    temperature=0.4
+)
+
+local_llm = HuggingFacePipeline(pipeline=pipe)
+```
+
+Then, the template prompt for evaluation and the LLM chain is defined: (Yes, you can play with the template to check how it affects the response!)
+
+```
+template = """You a response evaluator. You are tasked with generating criticisms for the relevance of an essay or letter written below as per the question asked:
+### Question:
+{prompt}
+
+### Answer:
+{instruction}
+
+Evaluation:"""
+
+prompt = PromptTemplate(template=template, input_variables=["prompt", "instruction"])
+llm_chain = LLMChain(prompt=prompt, llm=local_llm)
+```
+
+The schema for requests and responses are defined for standardization. This ensures that they include all parameters that are important for the application.
+
+```
+class EssayEvaluationRequest(BaseModel):
+    prompt_id: int
+    essay_output: str
+    student_id: str
+
+class EssayEvaluationResponse(BaseModel):
+    criticism: str
+    student_id: str
+    prompt_id: int
+```
+Finally, a Fast API post function with **"/evaluate"** end point is defined that invokes the chain whenever a request is received:
+
+```
+@app.post("/evaluate", response_model=EssayEvaluationResponse)
+async def evaluate_essay(request: EssayEvaluationRequest):
+    try:
+        input_dict = {
+            "prompt": prompt_dict[request.prompt_id],  
+            "instruction": request.essay_output  
+        }
+        result = llm_chain.invoke(input_dict)  
+        return EssayEvaluationResponse(criticism=result, student_id=request.student_id, prompt_id=request.prompt_id)
+
+``` 
 
 ### Usage
 
