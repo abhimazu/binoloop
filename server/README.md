@@ -62,7 +62,7 @@ chmod +x script_run.sh
 
 ### Huggingface pipeline definition
 
-A huggingface transformers based pipeline is defined for the model with hyperparams:
+A huggingface transformers pipeline is defined for the model with hyperparams:
 
 ```
 tokenizer = AutoTokenizer.from_pretrained(model_name)
