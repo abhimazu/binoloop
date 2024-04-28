@@ -1,0 +1,54 @@
+name: Python Application CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - cicd_github_actions
+  pull_request:
+    branches:
+      - cicd_github_actions
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-mock
+          if [ -d "server/" ]; then
+            pip install -r server/requirements.txt
+          fi
+          if [ -d "client/" ]; then
+            pip install -r client/requirements.txt
+          fi
+
+      - name: Run tests in Server
+        run: |
+          cd server
+          pytest
+
+      - name: Run tests in Client
+        run: |
+          cd client
+          pytest
+
+      - name: Build Docker Image for Server
+        run: |
+          if [ -d "server/" ]; then
+            cd server
+            docker build -t fastapi-server .
+          fi
+      
+      - name: Run Docker Container
+        if: ${{ github.workspace }}/server
+        run: |
+          docker run -d -p 8000:8000 fastapi-server
