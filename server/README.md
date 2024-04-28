@@ -6,20 +6,20 @@ This document provides guidance on setting up and running the ModelServer, a Fas
 
 ### Features
 
-    Model Evaluation: Evaluates essays based on predefined prompts and generates critical feedback.
-    Dockerized Application: Ensures consistent environment and easy deployment.
-    Configurable Model Selection: Allows users to specify the model via environment variables.
+1. **Model Evaluation**: Evaluates essays based on predefined prompts and generates critical feedback.
+2. **Dockerized Application**: Ensures consistent environment and easy deployment.
+3. **Configurable Model Selection**: Allows users to specify the model via environment variables.
 
 ### Prerequisites
 
 Before you start, ensure you have the following installed:
 
-    1. Docker
-    2. Docker Compose
-    3. Optionally, for local testing without Docker:
-       Python (version 3.8 or later recommended)
-       Required Python libraries (FastAPI, uvicorn, transformers, etc.) which can be installed using pip (mentioned in the requirments.txt file)
-       Ensure port 8000 is free for the fastapi server
+1. Docker
+2. Docker Compose
+3. Optionally, for local testing without Docker:
+   a. Python (version 3.8 or later recommended)
+   b. Required Python libraries (FastAPI, uvicorn, transformers, etc.) which can be installed using pip (mentioned in the requirments.txt file)
+   c. Ensure port 8000 is free for the fastapi server
 
 ## Setup and Installation
 
