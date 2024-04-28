@@ -128,6 +128,49 @@ async def evaluate_essay(request: EssayEvaluationRequest):
 
 ``` 
 
+## Containerization
+
+A dockerfile is used to build an image of the server that has the script with all dependencies inside that can later be run as a container in any environment.
+
+Here is how the dockerfile looks:
+
+```
+FROM python:3.9-slim
+WORKDIR /app
+COPY . /app
+RUN pip install --no-cache-dir -r requirements.txt
+EXPOSE 8000
+ENV MODEL_NAME=microsoft/phi-2
+ENV NUM_WORKERS=1
+
+CMD uvicorn server:app --host 0.0.0.0 --port 8000 --workers $NUM_WORKERS
+```
+
+**python:3.9-slim** is selected as the base image since we are using Fastapi with minor dependencies. The work directory is defined as */app* and all the files from current folder are copied inside it. Then, the dependencies are installed and *8000* port is exposed as the server needs to listen and respond with external IO. The customizable environment vaiables are declared and the command that will run the script is provided as the entrypoint for the image. 
+
+The docker-compose file builds the image (if not available locally) and runs the image built using the dockerfile with certain configurations as declared below:
+
+```
+version: '3.8' 
+
+services:
+  modelserver:
+    image: modelserver 
+    build:
+      context: . 
+      dockerfile: Dockerfile  
+    ports:
+      - "8000:8000"  
+    volumes:
+      - ./logs:/app/logs 
+    environment:
+      - MODEL_NAME=microsoft/phi-2 
+      - NUM_WORKERS=1 
+    restart: unless-stopped  
+```
+
+Here, the model name and number of workers for the uvicorn server can be configured (under the **environment:** section)
+
 ### Usage
 
 Once the server is running, you can evaluate essays by sending HTTP POST requests to http://localhost:8000/evaluate. The example of how send a request is in the [client](https://github.com/abhimazu/binoloop/tree/main/client) folder:
