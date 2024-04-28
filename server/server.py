@@ -28,7 +28,6 @@ prompt_dict = {
 }
 
 tokenizer = AutoTokenizer.from_pretrained(model_name)
-# quantization_config = BitsAndBytesConfig(load_in_8bit=True)
 
 model = AutoModelForCausalLM.from_pretrained(
     model_name,
