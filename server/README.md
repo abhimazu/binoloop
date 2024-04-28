@@ -146,7 +146,21 @@ ENV NUM_WORKERS=1
 CMD uvicorn server:app --host 0.0.0.0 --port 8000 --workers $NUM_WORKERS
 ```
 
-**python:3.9-slim** is selected as the base image since we are using Fastapi with minor dependencies. The work directory is defined as */app* and all the files from current folder are copied inside it. Then, the dependencies are installed and *8000* port is exposed as the server needs to listen and respond with external IO. The customizable environment vaiables are declared and the command that will run the script is provided as the entrypoint for the image. 
+The Dockerfile is configured with python:3.9-slim as the base image to leverage a lightweight version of Python, which is suitable given the relatively minimal dependency requirements of our FastAPI application. Here’s a breakdown of the Dockerfile setup:
+
+- **Base Image**: python:3.9-slim is chosen for its balance between size and functionality, providing the necessary Python environment while keeping the image size small. This is particularly advantageous for a FastAPI application with a few dependencies.
+
+- **Working Directory**: The working directory within the container is set to /app. 
+
+- **Copying Files**: All files from the current directory on the host machine are copied into the /app directory inside the container.
+
+- **Installing Dependencies**: Dependencies are installed using pip, Python's package installer. This step reads the requirements.txt file and installs all the libraries necessary for the application to run.
+
+- **Exposing Ports**: Port 8000 is exposed, which is the port on which the FastAPI server listens. This setup is crucial for communication between the server inside the container and external clients.
+
+- **Environment Variables**: Environment variables are declared within the Dockerfile, which can be customized depending on the deployment environment or specific runtime configurations.
+
+- **Entrypoint Command**: The Dockerfile specifies uvicorn server:app --host 0.0.0.0 --port 8000 as the command to run when the container starts. This command launches the FastAPI server application using Uvicorn.
 
 The docker-compose file builds the image (if not available locally) and runs the image built using the dockerfile with certain configurations as declared below:
 
