@@ -17,9 +17,9 @@ Before you start, ensure you have the following installed:
 1. Docker
 2. Docker Compose
 3. Optionally, for local testing without Docker:
-   a. Python (version 3.8 or later recommended)
-   b. Required Python libraries (FastAPI, uvicorn, transformers, etc.) which can be installed using pip (mentioned in the requirments.txt file)
-   c. Ensure port 8000 is free for the fastapi server
+   - Python (version 3.8 or later recommended)
+   - Required Python libraries (FastAPI, uvicorn, transformers, etc.) which can be installed using pip (mentioned in the requirments.txt file)
+   - Ensure port 8000 is free for the fastapi server
 
 ## Setup and Installation
 
